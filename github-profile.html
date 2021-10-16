@@ -1,0 +1,102 @@
+<html>
+  <head>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.4.1/semantic.min.css"
+    />
+    <link rel="stylesheet" href="github-profile.css" />
+  </head>
+
+  <body>
+    <div id="app" class="ui container">
+      <h1>My GitHub Community <i class="github icon"></i></h1>
+      <h3>Enter your GitHub profile to take part in my comminuty!</h3>
+      <div class="ui action input">
+        <input
+          type="text"
+          v-model="newUser"
+          v-on:keyup.enter="addNewUser"
+          placeholder="Your GitHub username"
+        />
+        <button v-on:click="addNewUser" class="ui secondary button">
+          Submit
+        </button>
+      </div>
+      <div class="cards-container">
+        <github-user-card
+          v-for="user in users"
+          :username="user.label"
+        ></github-user-card>
+      </div>
+    </div>
+    <script type="text/x-template" id="github-user-card-template">
+      <div class="ui card">
+      	<div class="image">
+      		<img :src="user.avatar_url" />
+      	</div>
+      	<div class="content">
+      		<a :href="`https://github.com/${username}`" target="_blank" class="header">{{user.name}}</a>
+      		<div class="meta">
+      			<span class="date">Joined in {{new Date(user.created_at).getFullYear()}}</span>
+      		</div>
+      		<div class="description">
+      			{{user.bio && user.bio.length > 30 ? user.bio.slice(0,30) + '...' : user.bio && user.bio.length <= 30 ? user.bio : "No bio"}}
+      		</div>
+      	</div>
+      	<div class="extra content">
+      		<a :href="`https://github.com/${username}?tab=followers`" target="_blank">
+      			<i class="user icon"></i>
+      			{{user.followers}} Friends
+      		</a>
+      	</div>
+      </div>
+    </script>
+    <!-- Import Vue.js and axios -->
+    <script src="https://unpkg.com/vue@3"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <!-- Your JavaScript Code :) -->
+    <script>
+      Vue.createApp({
+        data() {
+          return {
+            newUser: "",
+            users: [
+              {
+                id: 1,
+                label: "may4eto",
+              },
+            ],
+          };
+        },
+        methods: {
+          addNewUser() {
+            this.users.push({
+              id: this.users.length + 1,
+              label: this.newUser,
+            });
+            this.newUser = "";
+          },
+        },
+      })
+        .component("github-user-card", {
+          template: "#github-user-card-template",
+          props: {
+            username: { type: String, required: true },
+          },
+          data() {
+            return {
+              user: {},
+            };
+          },
+          async created() {
+            const response = await axios.get(
+              `https://api.github.com/users/${this.username}`
+            );
+            this.user = response.data;
+          },
+        })
+        .mount("#app");
+    </script>
+  </body>
+</html>
